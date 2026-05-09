@@ -1,0 +1,192 @@
+
+<h2 class="sr-only">松尾研LLMコミュニティ Paper &amp; Hacks 各動画の閲覧数グラフ</h2>
+
+<div style="padding: 1rem 0;">
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; align-items: center;">
+    <span style="font-size: 13px; color: var(--color-text-secondary);">並び替え:</span>
+    <button onclick="sortBy('episode')" id="btn-episode" style="font-size:12px; padding:4px 10px; font-weight:500;">No.順</button>
+    <button onclick="sortBy('views')" id="btn-views" style="font-size:12px; padding:4px 10px;">閲覧数順</button>
+  </div>
+  <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 8px;">棒をクリックするとYouTubeで開きます</p>
+  <div style="position: relative; width: 100%; height: 520px;">
+    <canvas id="viewsChart" role="img" aria-label="松尾研LLMコミュニティ Paper & Hacks 各動画の閲覧数棒グラフ。棒クリックでYouTubeを開く。">各回の閲覧数を示す棒グラフ</canvas>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const rawData = [
+  { ep: '#81', title: 'LLMによるプロンプト/コードログ分析', views: 334, url: 'https://www.youtube.com/watch?v=OTEITXejVcA' },
+  { ep: '#79', title: 'ARC-AGI紹介', views: 569, url: 'https://www.youtube.com/watch?v=egyfRRhvRlE' },
+  { ep: '#78', title: '進化的プログラム生成によるCAD自動生成', views: 419, url: 'https://www.youtube.com/watch?v=gT_T92p01q8' },
+  { ep: '#77', title: 'リーンデータスタック', views: 464, url: 'https://www.youtube.com/watch?v=2vInvftsb6o' },
+  { ep: '#76', title: 'LangChainで基本RAGアプリ開発', views: 658, url: 'https://www.youtube.com/watch?v=bxy_fJ7qct0' },
+  { ep: '#73', title: '異なる科学AIも同じ物質の夢を見る？', views: 235, url: 'https://www.youtube.com/watch?v=Ba2KHXEGgZc' },
+  { ep: '#72', title: 'RLVRがモデルの推論能力を高めているのか', views: 224, url: 'https://www.youtube.com/watch?v=i8hrSrNttWE' },
+  { ep: '#71', title: 'LLMを「関数」として再定義する', views: 403, url: 'https://www.youtube.com/watch?v=fmL40JU1INU' },
+  { ep: '#75', title: 'ロボットを"操作"から"会話"へ', views: 319, url: 'https://www.youtube.com/watch?v=6XcdwqUt48E' },
+  { ep: '#74', title: 'AIロボットの対話スタイルとラポール', views: 318, url: 'https://www.youtube.com/watch?v=9yEubmRgSzA' },
+  { ep: '#70', title: 'Graph RAGの最新動向', views: 1288, url: 'https://www.youtube.com/watch?v=OZyrQNjsjXU' },
+  { ep: '#69', title: 'GENIAC-PRIZE参加報告', views: 828, url: 'https://www.youtube.com/watch?v=yXfnNchItvg' },
+  { ep: '#68', title: 'GRPO・RLVRの諸課題とVibeThinker', views: 554, url: 'https://www.youtube.com/watch?v=lZ2VQ2XMlo0' },
+  { ep: '#67', title: 'BindCraft論文解説', views: 362, url: 'https://www.youtube.com/watch?v=meBjwuQPSYI' },
+  { ep: '#66', title: '2025年LLM新アルゴリズム論文紹介', views: 870, url: 'https://www.youtube.com/watch?v=DORXRAC4w0w' },
+  { ep: '#65', title: 'LLMによるカルテ情報の構造化', views: 935, url: 'https://www.youtube.com/watch?v=bz6E9feGkkQ' },
+  { ep: '#64', title: 'test-time scaling入門', views: 596, url: 'https://www.youtube.com/watch?v=vGFucsTup0Y' },
+  { ep: '#63', title: 'DifyによるRAG実装', views: 1901, url: 'https://www.youtube.com/watch?v=XFhV6k7RRZ8' },
+  { ep: '#62', title: 'LLMが読唇術？視覚音声認識', views: 421, url: 'https://www.youtube.com/watch?v=56MKz5POo_8' },
+  { ep: '#61', title: '医療LLMとMLLMに関する包括的調査', views: 734, url: 'https://www.youtube.com/watch?v=oxT8a-mHROo' },
+  { ep: '#60', title: 'ComfyUIによる画像・動画生成', views: 675, url: 'https://www.youtube.com/watch?v=cSgjjC4ALPg' },
+  { ep: '#59', title: 'VMLファインチューニング・ハンズオン', views: 953, url: 'https://www.youtube.com/watch?v=pMWaSxGidXY' },
+  { ep: '#58', title: '地球観測を"会話"に変える新アプローチ', views: 337, url: 'https://www.youtube.com/watch?v=-13LAh-dDXA' },
+  { ep: '#57', title: '「良いデータ」の新定義', views: 1594, url: 'https://www.youtube.com/watch?v=VyOvFhbp0BE' },
+  { ep: '#56', title: 'アドバンスRAG実装・ハンズオン', views: 856, url: 'https://www.youtube.com/watch?v=PlcGxxwRGjk' },
+  { ep: '#55', title: '拡散言語モデル入門', views: 1015, url: 'https://www.youtube.com/watch?v=sR9iqgxxilk' },
+  { ep: '#54', title: 'マルチモーダル生物学的推論', views: 316, url: 'https://www.youtube.com/watch?v=WjtCMsDpn-A' },
+  { ep: '#53', title: 'LLMのユーモア理解を向上させるか？', views: 534, url: 'https://www.youtube.com/watch?v=lCqKMFASe-Y' },
+  { ep: '#52', title: 'OSS動画生成AI最新情報', views: 602, url: 'https://www.youtube.com/watch?v=Z15B2zBOEpY' },
+  { ep: '#51', title: 'プロンプトエンジニアリング', views: 1332, url: 'https://www.youtube.com/watch?v=dVghTyLFoZg' },
+  { ep: '#50', title: 'JSAI2025の学会内容紹介', views: 584, url: 'https://www.youtube.com/watch?v=dXO0N_RO4rk' },
+  { ep: '#49', title: 'RAG評価用アプリ・ハンズオン', views: 749, url: 'https://www.youtube.com/watch?v=5zEIaw0NkoU' },
+  { ep: '#48', title: 'MCP入門', views: 12000, url: 'https://www.youtube.com/watch?v=Getj8CcBC6w' },
+  { ep: '#47', title: 'AIと半導体の関係の変化', views: 651, url: 'https://www.youtube.com/watch?v=y4T26EzTLqk' },
+  { ep: '#46', title: 'LLMによる社会シミュレーション', views: 1194, url: 'https://www.youtube.com/watch?v=uCKRHP9z4ok' },
+  { ep: '#45', title: 'AI Scientist - AIエージェント活用', views: 989, url: 'https://www.youtube.com/watch?v=G2TkASv-J5c' },
+  { ep: '#44', title: 'LLMによるPPT資料自動作成・ハンズオン', views: 1387, url: 'https://www.youtube.com/watch?v=eYOY5uPS_zE' },
+  { ep: '#43', title: 'RAG vs ロングコンテクスト・ハンズオン', views: 682, url: 'https://www.youtube.com/watch?v=hE3h5SOHhYY' },
+  { ep: '#42', title: 'Open AI APIチャットボット・ハンズオン', views: 769, url: 'https://www.youtube.com/watch?v=1_q9DS35hlA' },
+  { ep: '#41', title: 'LLMファインチューニング技術と評価', views: 1004, url: 'https://www.youtube.com/watch?v=52_WPyqfMys' },
+  { ep: '#40', title: 'マルチモーダル基盤モデルと世界モデル', views: 1222, url: 'https://www.youtube.com/watch?v=q3YoflcSAOA' },
+  { ep: '#39', title: 'DeepSeek論文まとめ・強化学習', views: 2000, url: 'https://www.youtube.com/watch?v=m4LGqc0v_eI' },
+  { ep: '#38', title: 'DeepSeek関連の論文解説', views: 1753, url: 'https://www.youtube.com/watch?v=q2LWZgzSurs' },
+  { ep: '#37', title: 'Transformer²: Self-Adaptive LLMs', views: 1098, url: 'https://www.youtube.com/watch?v=q2LWZgzSurs' },
+  { ep: '#36', title: 'LLM講座2024 コンペ体験談', views: 931, url: 'https://www.youtube.com/watch?v=q2LWZgzSurs' },
+  { ep: '#35', title: 'DeepSeek Janusのアーキテクチャ', views: 920, url: 'https://www.youtube.com/watch?v=q2LWZgzSurs' },
+  { ep: '#34', title: 'LLM講座2024 コンペ体験談', views: 1210, url: 'https://www.youtube.com/watch?v=q2LWZgzSurs' },
+  { ep: '#33', title: 'LLM講座2024 コンペ体験談', views: 1328, url: 'https://www.youtube.com/watch?v=gQg_PZN3xQg' },
+  { ep: '#32', title: 'Sentence Embeddings', views: 1070, url: 'https://www.youtube.com/watch?v=4M1ykCjzAC8' },
+  { ep: '#31', title: 'AIはなぜ突然性能が向上するのか？', views: 8422, url: 'https://www.youtube.com/watch?v=gTcWbf9OF3Q' },
+  { ep: '#30', title: 'AI Safetyの必要性と対策', views: 1629, url: 'https://www.youtube.com/watch?v=ji1G90kUel8' },
+  { ep: '#29', title: 'CLIPと画像生成AIへの応用', views: 1062, url: 'https://www.youtube.com/watch?v=B2kKzJLYOz4' },
+  { ep: '#28', title: 'LlamaGen: Next-Token予測で画像生成', views: 785, url: 'https://www.youtube.com/watch?v=onCWChnwhHI' },
+  { ep: '#26', title: '医療LLMの研究紹介', views: 1596, url: 'https://www.youtube.com/watch?v=a4U2iFg48SY' },
+  { ep: '#25', title: 'Llama3.2/Qwen2.5 ファインチューニング', views: 2832, url: 'https://www.youtube.com/watch?v=fp4GC6OUZGc' },
+  { ep: '#24', title: 'LLMはハルシネーションを自覚しているか', views: 1604, url: 'https://www.youtube.com/watch?v=ntsRW25g9GA' },
+  { ep: '#23', title: '論理的飛躍でLLMに大喜利させる', views: 1602, url: 'https://www.youtube.com/watch?v=9QaN6SXkI_k' },
+  { ep: '#22', title: 'オフラインデータのアライメント手法', views: 773, url: 'https://www.youtube.com/watch?v=j3wdjNW6nnw' },
+  { ep: '#21', title: '合成データの作成について', views: 1771, url: 'https://www.youtube.com/watch?v=FupHEgGdJ5w' },
+  { ep: '#20', title: 'スケーリング法則がなぜスケーラブルか', views: 758, url: 'https://www.youtube.com/watch?v=N_RLo_3SJYw' },
+  { ep: '#19', title: '東京24時間AIハッカソン2024 優勝体験', views: 735, url: 'https://www.youtube.com/watch?v=WWS5PgPMfLQ' },
+  { ep: '#18', title: '画像とLLM、CVPR2024の動向', views: 855, url: 'https://www.youtube.com/watch?v=scGL3xJ6tAY' },
+  { ep: '#17', title: '言語とは何か？集合的予測符号化', views: 2111, url: 'https://www.youtube.com/watch?v=mmJNCX0w2F8' },
+  { ep: '#16', title: 'LLM Agentのベンチマーク', views: 870, url: 'https://www.youtube.com/watch?v=7IYQr0H-pYI' },
+  { ep: '#15', title: 'Evolution of Multimodal Architectures', views: 839, url: 'https://www.youtube.com/watch?v=jOu-9xBFFFA' },
+  { ep: '#14', title: '医療LLMの現在地点', views: 1271, url: 'https://www.youtube.com/watch?v=l0TPrQhOCYw' },
+  { ep: '#12', title: 'LLM主要論文 ざっくり解説', views: 1497, url: 'https://www.youtube.com/watch?v=SL9NerTHcfY' },
+  { ep: '#06', title: 'RAG 2.0', views: 1561, url: 'https://www.youtube.com/watch?v=TeWJDAuF3ZM' },
+  { ep: '#05', title: 'Retrieval Head 論文紹介', views: 951, url: 'https://www.youtube.com/watch?v=AlRLp19k7bM' },
+  { ep: '#04', title: 'マルチモーダルLLMのレビュー論文', views: 1332, url: 'https://www.youtube.com/watch?v=nKma3gafkUI' },
+  { ep: '#03', title: 'ChatGPTとその利用可能性', views: 2006, url: 'https://www.youtube.com/watch?v=tiJZv8yo2A8' },
+  { ep: '#02', title: 'RAGサーベイ論文 / LLMのLong context', views: 2054, url: 'https://www.youtube.com/watch?v=iQEF812QTLw' },
+  { ep: '#01', title: 'RAGの手法と実装', views: 4524, url: 'https://www.youtube.com/watch?v=7va3RCZlG68' },
+];
+
+let currentSort = 'episode';
+let chart;
+let sortedData = [];
+
+function getColor(views) {
+  if (views >= 5000) return '#3266ad';
+  if (views >= 2000) return '#5c8fc9';
+  if (views >= 1000) return '#89b4de';
+  return '#b8d3ef';
+}
+
+function buildChart(sorted) {
+  sortedData = sorted;
+  const labels = sorted.map(d => d.ep);
+  const data = sorted.map(d => d.views);
+  const colors = sorted.map(d => getColor(d.views));
+
+  if (chart) chart.destroy();
+
+  chart = new Chart(document.getElementById('viewsChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '閲覧数',
+        data,
+        backgroundColor: colors,
+        hoverBackgroundColor: sorted.map(() => '#1a4a8a'),
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cursor: 'pointer',
+      onClick: (evt, elements) => {
+        if (elements.length > 0) {
+          const idx = elements[0].index;
+          window.open(sortedData[idx].url);
+        }
+      },
+      onHover: (evt, elements) => {
+        evt.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => {
+              const idx = items[0].dataIndex;
+              return sortedData[idx].ep + ' ' + sortedData[idx].title;
+            },
+            label: (item) => '閲覧数: ' + item.raw.toLocaleString() + '回'
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            font: { size: 10 },
+            maxRotation: 45,
+            autoSkip: false,
+            color: '#888'
+          },
+          grid: { display: false }
+        },
+        y: {
+          ticks: {
+            callback: v => v >= 1000 ? (v/1000).toFixed(0) + 'k' : v,
+            font: { size: 11 },
+            color: '#888'
+          },
+          grid: { color: 'rgba(128,128,128,0.15)' }
+        }
+      }
+    }
+  });
+}
+
+function sortBy(type) {
+  currentSort = type;
+  document.getElementById('btn-episode').style.fontWeight = type === 'episode' ? '500' : '400';
+  document.getElementById('btn-views').style.fontWeight = type === 'views' ? '500' : '400';
+
+  let sorted;
+  if (type === 'episode') {
+    sorted = [...rawData].sort((a, b) => {
+      const na = parseInt(a.ep.replace('#','')) || 0;
+      const nb = parseInt(b.ep.replace('#','')) || 0;
+      return na - nb;
+    });
+  } else {
+    sorted = [...rawData].sort((a, b) => b.views - a.views);
+  }
+  buildChart(sorted);
+}
+
+sortBy('episode');
+</script>
